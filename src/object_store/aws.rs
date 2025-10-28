@@ -69,11 +69,11 @@ pub(crate) fn create_s3_object_store(uri: &Url) -> ObjectStoreWithExpiration {
     // Configura timeouts maiores para lidar com arquivos grandes
     // --------------------------------------------------------------
     let client_options = ClientOptions::new()
-        .with_connect_timeout(Duration::from_secs(30))  // Timeout para conexão (default: 5s)
-        .with_timeout(Duration::from_secs(600));       // Timeout total da requisição (default: 30s, aumente para arquivos >1GB)
+        .with_connect_timeout(Duration::from_secs(60))  // Timeout para conexão (default: 5s)
+        .with_timeout(Duration::from_secs(600));       // Timeout total da requisição (default: 30s)
     aws_s3_builder = aws_s3_builder.with_client_options(client_options);
 
-    // Opcional: Aumenta retries para falhas transitórias (ex: rede lenta)
+    // Aumenta retries para falhas transitórias (ex: rede lenta)
     let retry_config = RetryConfig::default()
         .with_max_retries(5)                       // Máximo de retries (default: 3)
         .with_retry_initial_backoff(Duration::from_millis(500))  // Backoff inicial
