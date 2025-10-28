@@ -37,7 +37,7 @@ After installing `Postgres`, you need to set up `rustup`, `cargo-pgrx` to build 
 
 ```bash
 # clone repo
-> git clone https://github.com/CrunchyData/pg_parquet.git
+> git clone https://github.com/thiagosegato/pg_parquet.git
 > cd pg_parquet
 
 # install rustup
