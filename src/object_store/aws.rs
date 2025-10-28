@@ -9,6 +9,9 @@ use crate::PG_BACKEND_TOKIO_RUNTIME;
 
 use super::object_store_cache::ObjectStoreWithExpiration;
 
+use object_store::{ClientOptions, RetryConfig};
+use std::time::Duration;
+
 // create_s3_object_store creates an AmazonS3 object store with the given bucket name.
 // It is configured by environment variables and aws config files as fallback method.
 // We need to read the config files to make the fallback method work since object_store
@@ -61,6 +64,21 @@ pub(crate) fn create_s3_object_store(uri: &Url) -> ObjectStoreWithExpiration {
     if let Some(region) = aws_s3_config.region {
         aws_s3_builder = aws_s3_builder.with_region(region);
     }
+
+    // --------------------------------------------------------------
+    // Configura timeouts maiores para lidar com arquivos grandes
+    // --------------------------------------------------------------
+    let client_options = ClientOptions::new()
+        .with_connect_timeout(Duration::from_secs(30))  // Timeout para conexão (default: 5s)
+        .with_timeout(Duration::from_secs(600));       // Timeout total da requisição (default: 30s, aumente para arquivos >1GB)
+    aws_s3_builder = aws_s3_builder.with_client_options(client_options);
+
+    // Opcional: Aumenta retries para falhas transitórias (ex: rede lenta)
+    let retry_config = RetryConfig::default()
+        .with_max_retries(5)                       // Máximo de retries (default: 3)
+        .with_retry_initial_backoff(Duration::from_millis(500))  // Backoff inicial
+        .with_retry_max_backoff(Duration::from_secs(10));       // Backoff máximo
+    aws_s3_builder = aws_s3_builder.with_retry(retry_config);
 
     let object_store = aws_s3_builder.build().unwrap_or_else(|e| panic!("{}", e));
 
